@@ -1,18 +1,20 @@
 document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('formCadastro');
 
-
-  form.addEventListener('submit', function (e) {
+  form.addEventListener('submit', async function (e) {
     e.preventDefault(); // Impede envio padrão do formulário
 
-
     // Captura os valores digitados
+    const nomeCompleto = document.getElementById('nomeCompleto').value;
     const email = document.getElementById('email').value;
     const confirmEmail = document.getElementById('confirmEmail').value;
     const senha = document.getElementById('senha').value;
     const confirmSenha = document.getElementById('confirmSenha').value;
+    const endereco = document.getElementById('endereco').value;
+    const telefone = document.getElementById('telefone').value;
+    const idade = document.getElementById('idade').value;
     const sexo = document.getElementById('inputSexo').value;
-
+    const termos = document.getElementById('termos').checked;
 
     // Verificações de validação
     if (email !== confirmEmail) {
@@ -20,54 +22,75 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-
     if (senha !== confirmSenha) {
       alert('As senhas não coincidem.');
       return;
     }
-
 
     if (!sexo) {
       alert('Por favor, selecione o sexo.');
       return;
     }
 
+    if (!termos) {
+      alert('Para prosseguir, aceite os termos de uso.');
+      return;
+    }
 
-    // Se tudo estiver correto, redireciona
-    window.location.href = 'index.html';
+    // Objeto com os dados do cadastro
+    const data = {
+      nomeCompleto,
+      email,
+      senha,
+      endereco,
+      telefone,
+      idade,
+      sexo,
+    };
+
+    try {
+      // Envia para a API
+      const response = await fetch('/api/cadastro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Cadastro realizado com sucesso!');
+        window.location.href = 'entrar.html'; // redireciona para login
+      } else {
+        alert('Erro: ' + (result.message || 'Não foi possível cadastrar.'));
+      }
+    } catch (err) {
+      console.error('Erro na requisição:', err);
+      alert('Erro ao conectar com o servidor.');
+    }
   });
 
-
-  // Dropdown de seleção de sexo
+  // seleção de sexo
   const btnSexo = document.getElementById('btnSexo');
   const sexoOptions = document.getElementById('sexoOptions');
-  const inputSexo = document.getElementById('inputSexo'); // Campo escondido que armazena o valor
+  const inputSexo = document.getElementById('inputSexo');
 
-
-  // Abre/fecha o dropdown quando o botão é clicado
   btnSexo.addEventListener('click', () => {
     sexoOptions.style.display = sexoOptions.style.display === 'block' ? 'none' : 'block';
   });
 
-
-  // Define o valor do sexo ao clicar em uma opção
   sexoOptions.querySelectorAll('.sexo-option').forEach(option => {
     option.addEventListener('click', () => {
       const valor = option.getAttribute('data-value');
-      btnSexo.textContent = valor;        // Mostra o valor no botão
-      inputSexo.value = valor;            // Armazena o valor no input hidden
-      sexoOptions.style.display = 'none'; // Fecha o dropdown
+      btnSexo.textContent = valor;
+      inputSexo.value = valor;
+      sexoOptions.style.display = 'none';
     });
   });
 
-
-  // Aplicar máscara no campo de telefone
-  const telefoneInput = document.getElementById('telefone');
-  IMask(telefoneInput, {
-    mask: '(00) 00000-0000'  // Formato com DDD e 9 dígitos
-  });
-});
-
+  // telefone encaixar certinho
+  const telefoneInput = document.getElementById('telefone');  
+  IMask(telefoneInput, { mask: '(00) 00000-0000' });
 
   // Fecha o dropdown se clicar fora dele
   document.addEventListener('click', (e) => {
@@ -75,3 +98,4 @@ document.addEventListener('DOMContentLoaded', function () {
       sexoOptions.style.display = 'none';
     }
   });
+});
